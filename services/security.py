@@ -1,6 +1,20 @@
 from redis.commands.core import AsyncScript
 
+from app.main import app
 from config.redis import RedisClient
+
+SECURITY_HEADERS = {
+    "Strict-Transport-Security": "max-age=63072000; includeSubDomains",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "X-XSS-Protection": "1; mode=block"
+}
+
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers.update(SECURITY_HEADERS)
+    return response
 
 RATE_LIMIT_SCRIPT = """
 local key = KEYS[1]
